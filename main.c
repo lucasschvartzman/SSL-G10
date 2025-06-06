@@ -293,7 +293,6 @@ bool validarLadosIzquierdos(const Gramatica *gramatica) {
     return true;
 }
 
-
 bool esProduccionRegular(const char *ladoDerecho, const char *terminales, const char *noTerminales) {
     const size_t longitud = strlen(ladoDerecho);
 
@@ -370,6 +369,64 @@ bool esGramaticaRegular(const Gramatica *gramatica) {
     return true;
 }
 
+char buscarNoTerminal(const char* cadenaDerivacion, const char* simbolosNoTerminales) {
+    for (int i = 0; cadenaDerivacion[i] != '\0'; i++) {
+        if (contieneCaracter(simbolosNoTerminales,cadenaDerivacion[i])) {
+            return cadenaDerivacion[i];
+        }
+    }
+    return '\0';
+}
+
+Produccion* obtenerProduccionesDeNoTerminal(const Gramatica* gramatica, const char noTerminalActual, int* cantidadProduccionesEncontradas) {
+
+    int cantidadEncontradas = 0;
+
+    for (int i = 0; i < gramatica->cantidadProducciones; i++) {
+        if (gramatica->producciones[i].ladoIzquierdo == noTerminalActual) {
+            cantidadEncontradas++;
+        }
+    }
+
+    Produccion* produccionesNoTerminal = malloc(cantidadEncontradas * sizeof(Produccion));
+    if (produccionesNoTerminal == NULL) {
+        malloc_printerr();
+        return NULL;
+    }
+
+    for (int i = 0; i < gramatica->cantidadProducciones; i++) {
+        if (gramatica->producciones[i].ladoIzquierdo == noTerminalActual) {
+            produccionesNoTerminal[i] = gramatica->producciones[i];
+        }
+    }
+
+    *cantidadProduccionesEncontradas = cantidadEncontradas;
+    return produccionesNoTerminal;
+}
+
+void generarPalabraAleatoria(const Gramatica* gramatica) {
+
+    srand(time(NULL));
+
+    char* cadenaDerivacion = malloc(2*sizeof(char));
+    if (cadenaDerivacion == NULL) {
+        malloc_printerr();
+        return;
+    }
+
+    cadenaDerivacion[0] = gramatica->axioma;
+    cadenaDerivacion[1] = '\0';
+
+    char noTerminalActual;
+
+    while ((noTerminalActual = buscarNoTerminal(cadenaDerivacion,gramatica->simbolosNoTerminales))) {
+        int cantidadProducciones;
+        Produccion* produccionesDeNoTerminal = obtenerProduccionesDeNoTerminal(gramatica,noTerminalActual,&cantidadProducciones);
+        const int indiceAleatorio = rand() % cantidadProducciones;
+        Produccion produccionElegida = produccionesDeNoTerminal[indiceAleatorio];
+    }
+}
+
 int main(void) {
     printmsg("Generador de palabras aleatorias - Grupo 10\n\n");
 
@@ -380,6 +437,7 @@ int main(void) {
 
     if (esGramaticaRegular(gramatica)) {
         mostrarGramatica(gramatica);
+        generarPalabraAleatoria(gramatica);
     }
 
     destruirGramatica(gramatica);
