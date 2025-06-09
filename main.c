@@ -394,14 +394,38 @@ Produccion* obtenerProduccionesDeNoTerminal(const Gramatica* gramatica, const ch
         return NULL;
     }
 
+    int j = 0;
     for (int i = 0; i < gramatica->cantidadProducciones; i++) {
         if (gramatica->producciones[i].ladoIzquierdo == noTerminalActual) {
-            produccionesNoTerminal[i] = gramatica->producciones[i];
+            produccionesNoTerminal[j++] = gramatica->producciones[i];
         }
     }
 
     *cantidadProduccionesEncontradas = cantidadEncontradas;
     return produccionesNoTerminal;
+}
+
+char* aplicarDerivacion(const char* cadena, char noTerminal, const char* reemplazo) {
+    size_t lenCadena = strlen(cadena);
+    size_t lenReemplazo = strlen(reemplazo);
+
+    char* nuevaCadena = malloc(lenCadena + lenReemplazo + 1);
+
+    bool reemplazoHecho = false;
+    int pos = 0;
+
+    for (int i = 0; cadena[i] != '\0'; i++) {
+        if (!reemplazoHecho && cadena[i] == noTerminal) {
+            strcpy(&nuevaCadena[pos], reemplazo);
+            pos += lenReemplazo;
+            reemplazoHecho = true;
+        } else {
+            nuevaCadena[pos++] = cadena[i];
+        }
+    }
+
+    nuevaCadena[pos] = '\0';
+    return nuevaCadena;
 }
 
 void generarPalabraAleatoria(const Gramatica* gramatica) {
@@ -417,14 +441,30 @@ void generarPalabraAleatoria(const Gramatica* gramatica) {
     cadenaDerivacion[0] = gramatica->axioma;
     cadenaDerivacion[1] = '\0';
 
+    printf("\nDerivacion: %s", cadenaDerivacion);
+
     char noTerminalActual;
 
     while ((noTerminalActual = buscarNoTerminal(cadenaDerivacion,gramatica->simbolosNoTerminales))) {
         int cantidadProducciones;
         Produccion* produccionesDeNoTerminal = obtenerProduccionesDeNoTerminal(gramatica,noTerminalActual,&cantidadProducciones);
+
         const int indiceAleatorio = rand() % cantidadProducciones;
         Produccion produccionElegida = produccionesDeNoTerminal[indiceAleatorio];
+
+
+        char* nuevaCadena = aplicarDerivacion(cadenaDerivacion, noTerminalActual, produccionElegida.ladoDerecho);
+        free(cadenaDerivacion);
+        cadenaDerivacion = nuevaCadena;
+
+
+        printf(" -> %s", cadenaDerivacion);
+
+        free(produccionesDeNoTerminal);
     }
+
+    printf("\n\n");
+    free(cadenaDerivacion);
 }
 
 int main(void) {
@@ -438,6 +478,8 @@ int main(void) {
     if (esGramaticaRegular(gramatica)) {
         mostrarGramatica(gramatica);
         generarPalabraAleatoria(gramatica);
+    } else {
+        printerr("La gramatica ingresada no es regular\n");
     }
 
     destruirGramatica(gramatica);
