@@ -248,7 +248,7 @@ bool esFormatoProduccionValido(const char *produccion) {
     if (strstr(ladoDerecho, "->") != NULL) {
         return false;
     }
-    // Validamos que el lado derecho tenga como máximo 2 ("LADO_DERECHO_MAX") símbolos. Ej: aT
+    // Validamos que el lado derecho tenga como máximo 2 ("LADO_DERECHO_MAX") símbolos. Por ejemplo: aT
     if (strlen(ladoDerecho) > LADO_DERECHO_MAX) {
         return false;
     }
@@ -369,34 +369,28 @@ bool esLinealAIzquierda(const char* ladoDerecho, const Gramatica *gramatica) {
 }
 
 bool esLinealADerecha(const char* ladoDerecho, const Gramatica *gramatica) {
-    return (contieneCaracter(ladoDerecho[0],gramatica->simbolosNoTerminales) && contieneCaracter(ladoDerecho[1],gramatica->simbolosTerminales))
+    return (contieneCaracter(ladoDerecho[0],gramatica->simbolosNoTerminales) && contieneCaracter(ladoDerecho[1],gramatica->simbolosTerminales));
 }
 
+/*
+        Las gramáticas regulares establecen que los lados derechos de las
+        producciones solo pueden ser alguna de las siguientes combinaciones:
+
+        - Un símbolo terminal (o EPSILON).
+        - Un símbolo terminal seguido de un símbolo no terminal (Lineal a derecha)
+        - Un símbolo no terminal seguido de un símbolo no terminal (Lineal a izquierda)
+ */
 bool cumpleRestriccionesGramaticaRegular(const char *ladoDerecho, const Gramatica *gramatica) {
     const char* simbolosTerminales = gramatica->simbolosTerminales;
     const size_t longitudLadoDerecho = strlen(ladoDerecho);
-
-    /*
-            Las gramáticas regulares establecen que los lados derechos de las
-            producciones solo pueden ser alguna de las siguientes combinaciones:
-
-            - Un símbolo terminal (o EPSILON).
-            - Un símbolo terminal seguido de un símbolo no terminal (Lineal a derecha)
-            - Un símbolo no terminal seguido de un símbolo no terminal (Lineal a izquierda)
-     */
-
-    // En caso de que tenga un solo símbolo, que sea un terminal o EPSILON.
-
     // Primer caso: Si se trata de un solo símbolo, este debe ser terminal o ser Epsilon.
     if (longitudLadoDerecho == 1) {
         return contieneCaracter(ladoDerecho[0],simbolosTerminales) || ladoDerecho[0] == EPSILON;
     }
-
     // Segundo caso: Si se trata de dos símbolos, debe ser alguna de las combinaciones mencionadas anteriormente.
     if (longitudLadoDerecho == 2) {
         return esLinealADerecha(ladoDerecho,gramatica) || esLinealAIzquierda(ladoDerecho,gramatica);
     }
-
     // Si el lado derecho no contiene una cantidad diferente de símbolos entonces no cumple. (No debería evaluarse).
     return false;
 }
@@ -557,7 +551,7 @@ char* aplicarDerivacion(const char* cadena, char noTerminal, const char* reempla
     return nuevaCadena;
 }
 
-void generarPalabraAleatoria(const Gramatica* gramatica) {
+char* generarPalabraAleatoria(const Gramatica* gramatica) {
 
     srand(time(NULL));
 
@@ -592,6 +586,8 @@ void generarPalabraAleatoria(const Gramatica* gramatica) {
 
     printf("\n\n");
     free(cadenaDerivacion);
+
+    return NULL;
 }
 
 int main(void) {
